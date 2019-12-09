@@ -161,4 +161,4 @@ const IntcodeComputer = (codeInput) => {
     }
 }
 
-IntcodeComputer(1);
+IntcodeComputer(2);
