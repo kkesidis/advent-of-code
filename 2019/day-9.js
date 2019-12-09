@@ -22,27 +22,26 @@ const getOpCode = (instruction) => {
 }
 
 const getNumber = (mode, index) => {
-    const targetIndex = pointer + index;
-
     // position mode: value inside the input indicated by the input
     if (mode === 0) {
-        const target = input[targetIndex];
+        let target = input[pointer + index];
         return parseInt(input[target]);
     }
+
+    // relative base
+    if (mode === 2) {
+        let target = input[pointer + index];
+        return parseInt(input[target + relativeBase]);
+    }
+
     // immediate mode: value of the pointer itself
-    else if (mode === 1) {
-        return parseInt(input[targetIndex]);
-    }
-    // relative mode
-    else if (mode === 2) {
-        return parseInt(input[targetIndex + relativeBase]);
-    }
+    return parseInt(input[pointer + index]);
 }
 
 const addHandler = (opCode, modes) => {
-    const numberOne = getNumber(modes.first, 1);
-    const numberTwo = getNumber(modes.second, 2);
-    const numberTarget = getNumber(1, 3);
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = parseInt(input[pointer + 3]);
 
     input[numberTarget] = numberOne + numberTwo;
 
@@ -50,9 +49,9 @@ const addHandler = (opCode, modes) => {
 }
 
 const multiplyHandler = (opCode, modes) => {
-    const numberOne = getNumber(modes.first, 1);
-    const numberTwo = getNumber(modes.second, 2);
-    const numberTarget = getNumber(1, 3);
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = parseInt(input[pointer + 3]);
 
     input[numberTarget] = numberOne * numberTwo;
 
@@ -60,22 +59,22 @@ const multiplyHandler = (opCode, modes) => {
 }
 
 const saveToPositionHandler = (opCode, modes) => {
-    const numberTarget = getNumber(modes.first, 1);
+    numberTarget = input[pointer + 1];
     input[numberTarget] = systemIdInput;
 
     return pointer + 2;
 }
 
 const outputHandler = (opCode, modes) => {
-    const output = getNumber(modes.first, 1);
+    let output = getNumber(modes.first, 1);
     console.log(`Output is: `, output);
 
     return pointer + 2;
 }
 
 const jumpIfTruHandler = (opCode, modes) => {
-    const numberOne = getNumber(modes.first, 1);
-    const numberTwo = getNumber(modes.second, 2);
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
 
     if (numberOne !== 0) {
         return numberTwo;
@@ -85,8 +84,8 @@ const jumpIfTruHandler = (opCode, modes) => {
 }
 
 const jumpIfFalseHandler = (opCode, modes) => {
-    const numberOne = getNumber(modes.first, 1);
-    const numberTwo = getNumber(modes.second, 2);
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
 
     if (numberOne === 0) {
         return numberTwo;
@@ -96,9 +95,9 @@ const jumpIfFalseHandler = (opCode, modes) => {
 }
 
 const lessThanHandler = (opCode, modes) => {
-    const numberOne = getNumber(modes.first, 1);
-    const numberTwo = getNumber(modes.second, 2);
-    const numberTarget = getNumber(1, 3);
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = input[pointer + 3];
 
     input[numberTarget] = (numberOne < numberTwo) ? 1 : 0;
 
@@ -106,9 +105,9 @@ const lessThanHandler = (opCode, modes) => {
 }
 
 const equalsHandler = (opCode, modes) => {
-    const numberOne = getNumber(modes.first, 1);
-    const numberTwo = getNumber(modes.second, 2);
-    const numberTarget = getNumber(1, 3);
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = input[pointer + 3];
 
     input[numberTarget] = (numberOne === numberTwo) ? 1 : 0;
 
@@ -116,9 +115,8 @@ const equalsHandler = (opCode, modes) => {
 }
 
 const adjustRelativeBaseHandler = (opCode, modes) => {
-    const numberTarget = getNumber(modes.first, 1);
-
-    relativeBase += parseInt(numberTarget);
+    let value = parseInt(input[pointer + 1]);
+    relativeBase += value;
 
     return pointer + 2;
 }
