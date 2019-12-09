@@ -91,9 +91,9 @@ What is the diagnostic code for system ID 5?
  */
 
 let input = '3,225,1,225,6,6,1100,1,238,225,104,0,1002,36,25,224,1001,224,-2100,224,4,224,1002,223,8,223,101,1,224,224,1,223,224,223,1102,31,84,225,1102,29,77,225,1,176,188,224,101,-42,224,224,4,224,102,8,223,223,101,3,224,224,1,223,224,223,2,196,183,224,1001,224,-990,224,4,224,1002,223,8,223,101,7,224,224,1,224,223,223,102,14,40,224,101,-1078,224,224,4,224,1002,223,8,223,1001,224,2,224,1,224,223,223,1001,180,64,224,101,-128,224,224,4,224,102,8,223,223,101,3,224,224,1,223,224,223,1102,24,17,224,1001,224,-408,224,4,224,1002,223,8,223,101,2,224,224,1,223,224,223,1101,9,66,224,1001,224,-75,224,4,224,1002,223,8,223,1001,224,6,224,1,223,224,223,1102,18,33,225,1101,57,64,225,1102,45,11,225,1101,45,9,225,1101,11,34,225,1102,59,22,225,101,89,191,224,1001,224,-100,224,4,224,1002,223,8,223,1001,224,1,224,1,223,224,223,4,223,99,0,0,0,677,0,0,0,0,0,0,0,0,0,0,0,1105,0,99999,1105,227,247,1105,1,99999,1005,227,99999,1005,0,256,1105,1,99999,1106,227,99999,1106,0,265,1105,1,99999,1006,0,99999,1006,227,274,1105,1,99999,1105,1,280,1105,1,99999,1,225,225,225,1101,294,0,0,105,1,0,1105,1,99999,1106,0,300,1105,1,99999,1,225,225,225,1101,314,0,0,106,0,0,1105,1,99999,8,226,677,224,1002,223,2,223,1006,224,329,1001,223,1,223,108,226,226,224,1002,223,2,223,1006,224,344,1001,223,1,223,7,677,226,224,102,2,223,223,1005,224,359,101,1,223,223,7,226,677,224,102,2,223,223,1006,224,374,101,1,223,223,1008,677,226,224,1002,223,2,223,1006,224,389,101,1,223,223,8,677,677,224,1002,223,2,223,1005,224,404,101,1,223,223,8,677,226,224,102,2,223,223,1005,224,419,1001,223,1,223,1107,677,226,224,102,2,223,223,1005,224,434,1001,223,1,223,1107,226,677,224,1002,223,2,223,1006,224,449,1001,223,1,223,107,677,226,224,1002,223,2,223,1005,224,464,1001,223,1,223,1008,677,677,224,1002,223,2,223,1006,224,479,1001,223,1,223,1108,677,226,224,1002,223,2,223,1006,224,494,1001,223,1,223,1108,677,677,224,1002,223,2,223,1006,224,509,1001,223,1,223,107,677,677,224,1002,223,2,223,1005,224,524,101,1,223,223,1007,677,226,224,102,2,223,223,1005,224,539,1001,223,1,223,1107,226,226,224,1002,223,2,223,1006,224,554,1001,223,1,223,1008,226,226,224,1002,223,2,223,1006,224,569,101,1,223,223,1108,226,677,224,1002,223,2,223,1006,224,584,101,1,223,223,108,677,677,224,1002,223,2,223,1006,224,599,1001,223,1,223,1007,677,677,224,102,2,223,223,1006,224,614,101,1,223,223,107,226,226,224,102,2,223,223,1006,224,629,101,1,223,223,1007,226,226,224,102,2,223,223,1005,224,644,1001,223,1,223,108,226,677,224,102,2,223,223,1005,224,659,1001,223,1,223,7,677,677,224,102,2,223,223,1006,224,674,1001,223,1,223,4,223,99,226'.split(',');
-// let input = '1002,4,3,4,33'.split(',');
 
-const inputSystemID = 1;
+let pointer = 0;
+let systemIdInput;
 
 const getInstructionModes = (instruction) => {
     instruction = instruction.padStart(5, '0');
@@ -112,52 +112,131 @@ const getOpCode = (instruction) => {
     return parseInt(instruction.slice(-2));
 }
 
-const getNumber = (pointer, mode) => {
+const getNumber = (mode, index) => {
     // position mode: value inside the input indicated by the input
     if (mode === 0) {
-        let target = input[pointer];
+        let target = input[pointer + index];
         return parseInt(input[target]);
     }
 
     // immediate mode: value of the pointer itself
-    return parseInt(input[pointer]);
+    return parseInt(input[pointer + index]);
 }
 
-const IntcodeComputer = () => {
-    let pointer = 0;
+const addHandler = (opCode, modes) => {
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = parseInt(input[pointer + 3]);
 
-    while (pointer < input.length) {
+    input[numberTarget] = numberOne + numberTwo;
+
+    return pointer + 4;
+}
+
+const multiplyHandler = (opCode, modes) => {
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = parseInt(input[pointer + 3]);
+
+    input[numberTarget] = numberOne * numberTwo;
+
+    return pointer + 4;
+}
+
+const saveToPositionHandler = (opCode, modes) => {
+    numberTarget = input[pointer + 1];
+    input[numberTarget] = systemIdInput;
+
+    return pointer + 2;
+}
+
+const outputHandler = (opCode, modes) => {
+    let output = getNumber(modes.first, 1);
+    console.log(`Output is: `, output);
+
+    return pointer + 2;
+}
+
+const jumpIfTruHandler = (opCode, modes) => {
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+
+    if (numberOne !== 0) {
+        return numberTwo;
+    }
+
+    return pointer + 3;
+}
+
+const jumpIfFalseHandler = (opCode, modes) => {
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+
+    if (numberOne === 0) {
+        return numberTwo;
+    }
+
+    return pointer + 3;
+}
+
+const lessThanHandler = (opCode, modes) => {
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = input[pointer + 3];
+
+    input[numberTarget] = (numberOne < numberTwo) ? 1 : 0;
+
+    return pointer + 4;
+}
+
+const equalsHandler = (opCode, modes) => {
+    let numberOne = getNumber(modes.first, 1);
+    let numberTwo = getNumber(modes.second, 2);
+    let numberTarget = input[pointer + 3];
+
+    input[numberTarget] = (numberOne === numberTwo) ? 1 : 0;
+
+    return pointer + 4;
+}
+
+const IntcodeComputer = (codeInput) => {
+    systemIdInput = codeInput;
+
+    while (pointer < input.length && pointer != -1) {
         let instruction = input[pointer].toString();
         let modes = getInstructionModes(instruction);
         let opCode = getOpCode(instruction);
-        let numberTarget;
-        let steps = 2;
 
-        if (opCode === 1 || opCode === 2) {
-            let numberOne = getNumber(pointer + 1, modes.first);
-            let numberTwo = getNumber(pointer + 2, modes.second);
-            numberTarget = parseInt(input[pointer + 3]);
-
-            if (opCode === 1) {
-                input[numberTarget] = numberOne + numberTwo;
-            } else if (opCode === 2) {
-                input[numberTarget] = numberOne * numberTwo;
-            }
-
-            steps = 4;
-        } else if (opCode === 3) {
-            numberTarget = input[pointer + 1];
-            input[numberTarget] = inputSystemID;
-        } else if (opCode === 4) {
-            numberTarget = parseInt(input[pointer + 1]);
-            let output = input[numberTarget]
-            console.log('Output: ', output);
-        } else if (opCode === 99) {
-            break;
+        switch (opCode) {
+            case 1:
+                pointer = addHandler(opCode, modes);
+                break;
+            case 2:
+                pointer = multiplyHandler(opCode, modes);
+                break;
+            case 3:
+                pointer = saveToPositionHandler(opCode, modes);
+                break;
+            case 4:
+                pointer = outputHandler(opCode, modes);
+                break;
+            case 5:
+                pointer = jumpIfTruHandler(opCode, modes);
+                break;
+            case 6:
+                pointer = jumpIfFalseHandler(opCode, modes);
+                break;
+            case 7:
+                pointer = lessThanHandler(opCode, modes);
+                break;
+            case 8:
+                pointer = equalsHandler(opCode, modes);
+                break;
+            case 99:
+                pointer = -1;
+                break;
         }
-
-        pointer += steps;
     }
 }
 
-IntcodeComputer();
+IntcodeComputer(5);
